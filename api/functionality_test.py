@@ -18,8 +18,11 @@ connection = sqlite3.connect('db/db.db')
 
 c = connection.cursor()
 
-for i in range(1,3):
+for i in range(1,50):
     neededIngredientList = []
+    presentIngredientList = []
+    toBuyIngredientList = []
+    recipeValid = 0
 
     c.execute(
         f"""
@@ -31,10 +34,33 @@ for i in range(1,3):
         ingredient = row[2]
         altIngredient = row[3]
         neededIngredientList.append(ingredient)
-        neededIngredientList.append(altIngredient)
-    print(neededIngredientList)
+    # print(neededIngredientList)
 
-print(availableIngredientList)
+    for item in neededIngredientList:
+        if item in availableIngredientList:
+            recipeValid = 1
+            presentIngredientList.append(item)
+        else:
+            toBuyIngredientList.append(item)
+
+    if recipeValid == 1:
+        c.execute(
+            f"""
+            SELECT Title FROM 'Recipe-Details' WHERE("Recipe ID"={i})
+            """
+        )
+        recipeTitle = c.fetchone()
+        print(f"""
+              *********************************************\n\n
+              With these ingredients, you can make {recipeTitle}.\n\n
+              Ingredients necessary to make that are available are {presentIngredientList}.\n\n
+              Ingredients you need to buy are {toBuyIngredientList}.\n\n
+              *********************************************\n\n
+              """)
+    else:
+        toBuyIngredientList = []
+
+# print(availableIngredientList)
 
 connection.commit()
 connection.close()
